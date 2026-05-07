@@ -89,3 +89,21 @@ The remaining non-determinism in the scheduler now comes entirely from `between(
 ### What changed
 
 - `project2.pl`: third clause of `pick_n_eligible/6` now includes the guard `( avoid_shift(E, Shift) ; avoid_workstation(E, Station) )`.
+
+---
+
+## 2026-05-07 - Add example input files for testing
+
+### Thoughts so far
+
+The five example input files provided with the assignment were not yet in the repository. Adding them makes it straightforward to run the scheduler and verify correctness directly from the repo without needing any external files.
+
+### What was added
+
+- `example-input-1.pl`: 26 employees, 3 workstations, one idle station in morning, avoid constraints for ophelia and daniel.
+- `example-input-2.pl`: 19 employees, 6 workstations. Workstation 5 has min=3 and max=1, which is impossible, so `plan/1` should fail.
+- `example-input-3.pl`: 17 employees, 2 workstations, shift and workstation avoid constraints.
+- `example-input-4.pl`: 21 employees, 4 workstations, multiple avoid constraints for workstations and shifts.
+- `example-input-5.pl`: 13 employees, 1 workstation, one employee who avoids morning.
+
+These files serve as the primary test suite. Each can be loaded with `swipl` alongside `project2.pl` and `testing.pl` to confirm correct behavior.
