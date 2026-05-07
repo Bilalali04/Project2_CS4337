@@ -57,4 +57,5 @@ pick_n_eligible(N, Station, Shift, [E|Es], [E|Chosen], Remaining) :-
     pick_n_eligible(N1, Station, Shift, Es, Chosen, Remaining).
 pick_n_eligible(N, Station, Shift, [E|Es], Chosen, [E|Remaining]) :-
     N > 0,
+    ( avoid_shift(E, Shift) ; avoid_workstation(E, Station) ),
     pick_n_eligible(N, Station, Shift, Es, Chosen, Remaining).

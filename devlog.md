@@ -52,3 +52,40 @@ Session went smoothly. The pipeline design came together cleanly in Prolog. The 
 Verified design against all five provided sample runs. Sample 2 correctly fails because workstation 5 has min=3 and max=1, making `between(3,1,N)` fail immediately. Sample 1 produces solutions matching the expected output ordering.
 
 Next steps: none for this session. Implementation is complete and all files are committed.
+
+---
+
+## 2026-05-07 - Bug Fix: pick_n_eligible duplicate plans
+
+### Thoughts so far
+
+After reviewing the third clause of `pick_n_eligible/6`, a correctness problem was identified. The original clause had no guard beyond `N > 0`:
+
+```prolog
+pick_n_eligible(N, Station, Shift, [E|Es], Chosen, [E|Remaining]) :-
+    N > 0,
+    pick_n_eligible(N, Station, Shift, Es, Chosen, Remaining).
+```
+
+This clause fires for any employee, including those who are fully eligible to work the station and shift. Because the second clause (which picks the employee) and the third clause (which skips the employee) can both fire for the same eligible employee, Prolog generates multiple solutions that assign the same set of employees to the same workstations but arrive at those assignments via different skip/pick orderings. The result is structurally identical plans appearing as separate solutions.
+
+### Fix applied
+
+The third clause was updated to only fire when the employee actually cannot work the station or shift:
+
+```prolog
+pick_n_eligible(N, Station, Shift, [E|Es], Chosen, [E|Remaining]) :-
+    N > 0,
+    ( avoid_shift(E, Shift) ; avoid_workstation(E, Station) ),
+    pick_n_eligible(N, Station, Shift, Es, Chosen, Remaining).
+```
+
+With this guard in place:
+- An eligible employee (avoids neither the shift nor the station) can only be picked (clause 2). There is no longer a choice to skip an eligible employee for a given workstation.
+- An ineligible employee can only be skipped (clause 3). Clause 2 fails on them because of the `\+` checks.
+
+The remaining non-determinism in the scheduler now comes entirely from `between(Min, Max, N)`, which tries different headcounts for each workstation. Different headcounts lead to different employees being available for downstream workstations and shifts, producing genuinely distinct plans without duplicates.
+
+### What changed
+
+- `project2.pl`: third clause of `pick_n_eligible/6` now includes the guard `( avoid_shift(E, Shift) ; avoid_workstation(E, Station) )`.
